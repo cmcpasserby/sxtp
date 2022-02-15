@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/cmcpasserby/sxtp/spine"
+	"github.com/cmcpasserby/sxtp"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
@@ -34,12 +34,12 @@ func main() {
 			}
 			defer f.Close()
 
-			atlases, err := spine.DecodeAtlas(f)
+			atlases, err := sxtp.DecodeAtlas(f)
 			if err != nil {
 				return err
 			}
 
-			return spine.PackMasks(atlases, spine.FileFormat(formatFlag), masksPath, outPath, suffixFlag, log.Default())
+			return sxtp.PackMasks(atlases, sxtp.FileFormat(formatFlag), masksPath, outPath, suffixFlag, log.Default())
 		},
 	}
 
