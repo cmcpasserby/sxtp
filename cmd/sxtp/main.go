@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
+	"flag"
 	"github.com/cmcpasserby/sxtp"
-	"github.com/spf13/cobra"
+	"github.com/peterbourgon/ff/v3/ffcli"
 	"log"
 	"os"
 )
@@ -13,20 +15,19 @@ const (
 
 func main() {
 	var (
-		formatFlag string
-		suffixFlag string
+		rootFlagSet = flag.NewFlagSet("sxtp", flag.ExitOnError)
+		suffixFlag  = rootFlagSet.String("s", "masks", "provides the suffix to use for new atlas")
+		formatFlag  = rootFlagSet.String("f", "png", "defines file format to saves masks as, options: [png, jpg]")
 	)
 
-	rootCmd := &cobra.Command{
-		Use:           "sxtp [atlasPath masksPath outputPath]",
-		Version:       version,
-		Short:         "Tool used for packing secondary textures in spine atlas format",
-		Long:          "Tool used for packing secondary textures in spine atlas format",
-		SilenceUsage:  false,
-		SilenceErrors: true,
-		Args:          cobra.ExactArgs(3),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			atlasPath, masksPath, outPath := args[0], args[1], args[2]
+	rootCmd := ffcli.Command{
+		Name:       "sxtp",
+		ShortUsage: "sxtp [flags] atlasPath masksPath outPath",
+		ShortHelp:  "Tool used for packing secondary textures in spine atlas format",
+		LongHelp:   "Tool used for packing secondary textures in spine atlas format",
+		FlagSet:    rootFlagSet,
+		Exec: func(ctx context.Context, args []string) error {
+			atlasPath, maskPath, outPath := args[0], args[1], args[2]
 
 			f, err := os.Open(atlasPath)
 			if err != nil {
@@ -39,21 +40,11 @@ func main() {
 				return err
 			}
 
-			return sxtp.PackMasks(atlases, sxtp.FileFormat(formatFlag), masksPath, outPath, suffixFlag, log.Default())
+			return sxtp.PackMasks(atlases, sxtp.FileFormat(*formatFlag), maskPath, outPath, *suffixFlag, log.Default())
 		},
 	}
 
-	rootCmd.Flags().StringVarP(
-		&suffixFlag,
-		"suffix",
-		"s",
-		"masks",
-		"provides the suffix to use for the new atlas, useful when multiple atlases need to be packed for the same purpose",
-	)
-	rootCmd.Flags().StringVarP(&formatFlag, "format", "f", "png", "defines file format to save masks as options: [png, jpg]")
-
-	if err := rootCmd.Execute(); err != nil {
-		rootCmd.PrintErrln(err)
-		os.Exit(1)
+	if err := rootCmd.ParseAndRun(context.Background(), os.Args[1:]); err != nil {
+		log.Fatal(err)
 	}
 }
