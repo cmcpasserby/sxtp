@@ -10,21 +10,26 @@ import (
 	"strings"
 )
 
+func typeOf[T any]() reflect.Type {
+	var v T
+	return reflect.TypeOf(v)
+}
+
 var parsers = map[reflect.Type]func(string) (interface{}, error){
-	reflect.TypeOf(string("")): func(s string) (interface{}, error) {
+	typeOf[string](): func(s string) (interface{}, error) {
 		return s, nil
 	},
-	reflect.TypeOf(false): func(s string) (interface{}, error) {
+	typeOf[bool](): func(s string) (interface{}, error) {
 		return strconv.ParseBool(s)
 	},
-	reflect.TypeOf(int(0)): func(s string) (interface{}, error) {
+	typeOf[int](): func(s string) (interface{}, error) {
 		return strconv.Atoi(s)
 	},
-	reflect.TypeOf(Filter{}): func(s string) (interface{}, error) {
+	typeOf[Filter](): func(s string) (interface{}, error) {
 		split := strings.SplitN(s, ",", 2)
 		return Filter{X: strings.TrimSpace(split[0]), Y: strings.TrimSpace(split[1])}, nil
 	},
-	reflect.TypeOf(Angle(0)): func(s string) (interface{}, error) {
+	typeOf[Angle](): func(s string) (interface{}, error) {
 		value, err := strconv.ParseBool(s)
 		if err == nil {
 			if value {
@@ -39,14 +44,14 @@ var parsers = map[reflect.Type]func(string) (interface{}, error){
 		}
 		return Angle(floatValue), nil
 	},
-	reflect.TypeOf(image.Point{}): func(s string) (interface{}, error) {
+	typeOf[image.Point](): func(s string) (interface{}, error) {
 		components, err := parseInts(s, 2)
 		if err != nil {
 			return nil, err
 		}
 		return image.Pt(components[0], components[1]), nil
 	},
-	reflect.TypeOf(Bounds{}): func(s string) (interface{}, error) {
+	typeOf[Bounds](): func(s string) (interface{}, error) {
 		components, err := parseInts(s, 4)
 		if err != nil {
 			return nil, err
@@ -56,7 +61,7 @@ var parsers = map[reflect.Type]func(string) (interface{}, error){
 			Size:     image.Pt(components[2], components[3]),
 		}, nil
 	},
-	reflect.TypeOf(Offsets{}): func(s string) (interface{}, error) {
+	typeOf[Offsets](): func(s string) (interface{}, error) {
 		components, err := parseInts(s, 4)
 		if err != nil {
 			return nil, err
