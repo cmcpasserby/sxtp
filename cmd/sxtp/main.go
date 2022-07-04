@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	version = "1.0.0" // TODO make command to print version
+	version = "1.0.0"
 )
 
 func main() {
@@ -23,9 +23,9 @@ func main() {
 		includeAlphaFlag = rootFlagSet.Bool("a", false, "should alpha channel be included in packed secondary texture")
 	)
 
-	rootCmd := ffcli.Command{
+	cmd := ffcli.Command{
 		Name:       "sxtp",
-		ShortUsage: "sxtp [flags] atlasPath masksPath outPath",
+		ShortUsage: "sxtp [flags] <atlasPath masksPath> [outPath]",
 		ShortHelp:  "Tool used for packing secondary textures in spine atlas format",
 		LongHelp:   "Tool used for packing secondary textures in spine atlas format", // TODO long help
 		FlagSet:    rootFlagSet,
@@ -35,7 +35,25 @@ func main() {
 				return nil
 			}
 
-			atlasPath, maskPath, outPath := args[0], args[1], args[2]
+			var (
+				err                          error
+				atlasPath, maskPath, outPath string
+			)
+
+			switch len(args) {
+			case 3:
+				atlasPath, maskPath, outPath = args[0], args[1], args[2]
+
+			case 2:
+				atlasPath, maskPath = args[0], args[1]
+				outPath, err = os.Getwd()
+				if err != nil {
+					return err
+				}
+
+			default:
+				return fmt.Errorf("expected 2 to 3 args got %d", len(args))
+			}
 
 			f, err := os.Open(atlasPath)
 			if err != nil {
@@ -48,11 +66,13 @@ func main() {
 				return err
 			}
 
-			return sxtp.PackMasks(atlases, sxtp.FileFormat(*formatFlag), maskPath, outPath, *suffixFlag, *includeAlphaFlag, log.Default())
+			l := log.New(os.Stdout, "", 0)
+
+			return sxtp.PackMasks(atlases, sxtp.FileFormat(*formatFlag), maskPath, outPath, *suffixFlag, *includeAlphaFlag, l)
 		},
 	}
 
-	if err := rootCmd.ParseAndRun(context.Background(), os.Args[1:]); err != nil {
+	if err := cmd.ParseAndRun(context.Background(), os.Args[1:]); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 	}
 }
