@@ -67,7 +67,7 @@ type Sprite struct {
 	Offsets Offsets `atlas:"offsets"`
 	Rotate  Angle   `atlas:"rotate"`
 	// Split   image.Rectangle `atlas:"split"`
-	// pad     image.Rectangle `atlas:"pad"`
+	// Pad     image.Rectangle `atlas:"pad"`
 }
 
 func (a *Sprite) String() string {

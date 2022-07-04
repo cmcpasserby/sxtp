@@ -145,6 +145,10 @@ func DecodeAtlas(reader io.Reader) ([]Atlas, error) {
 		}
 	}
 
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
 	if currentAtlas != nil {
 		setSpriteDefaults(currentSprite)
 		sprites = append(sprites, *currentSprite)
@@ -152,7 +156,7 @@ func DecodeAtlas(reader io.Reader) ([]Atlas, error) {
 		pages = append(pages, *currentAtlas)
 	}
 
-	return pages, scanner.Err()
+	return pages, nil
 }
 
 func parseLine(text string, t reflect.Type, v reflect.Value) error {

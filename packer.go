@@ -27,7 +27,7 @@ var (
 	supportedFormats = [...]FileFormat{FormatPNG, FormatJPG}
 )
 
-func PackMasks(atlasPages []Atlas, format FileFormat, masksPath, outputPath, suffix string, l *log.Logger) error {
+func PackMasks(atlasPages []Atlas, format FileFormat, masksPath, outputPath, suffix string, hasAlpha bool, l *log.Logger) error {
 	maskImages, err := getImageNames(masksPath)
 	if err != nil {
 		return err
@@ -42,14 +42,14 @@ func PackMasks(atlasPages []Atlas, format FileFormat, masksPath, outputPath, suf
 			noExtName := strings.TrimSuffix(atlas.Name, filepath.Ext(atlas.Name))
 			maskFileName := fmt.Sprintf("%s_%s_%02d.%s", noExtName, suffix, i, format)
 			outFileName := filepath.Join(outputPath, maskFileName)
-			return packPage(atlas, maskImages, format, outFileName, l)
+			return packPage(atlas, maskImages, format, outFileName, hasAlpha, l)
 		})
 	}
 
 	return wg.Wait()
 }
 
-func packPage(atlas *Atlas, maskImages map[string]string, format FileFormat, outputPath string, l *log.Logger) error {
+func packPage(atlas *Atlas, maskImages map[string]string, format FileFormat, outputPath string, hasAlpha bool, l *log.Logger) error {
 	outImage := image.NewNRGBA(image.Rectangle{Max: atlas.Size})
 	packedCount := 0
 
@@ -69,9 +69,12 @@ func packPage(atlas *Atlas, maskImages map[string]string, format FileFormat, out
 		maskImage = cropAndOffset(maskImage, sprite)
 
 		spriteRect := image.Rectangle{Min: sprite.Bounds.Position, Max: sprite.Bounds.Position.Add(maskImage.Bounds().Size())}
-		draw.Draw(outImage, spriteRect, maskImage, image.Point{}, draw.Over)
+		draw.Draw(outImage, spriteRect, maskImage, image.Point{}, draw.Over) // TODO might need to use DrawMask, and mask with color image alpha
 
-		stripAlpha(outImage)
+		if !hasAlpha {
+			stripAlpha(outImage)
+		}
+
 		packedCount++
 	}
 
