@@ -15,61 +15,63 @@ func typeOf[T any]() reflect.Type {
 	return reflect.TypeOf(v)
 }
 
-var parsers = map[reflect.Type]func(string) (interface{}, error){
-	typeOf[string](): func(s string) (interface{}, error) {
-		return s, nil
+var parsers = map[reflect.Type]func(string) (reflect.Value, error){
+	typeOf[string](): func(s string) (reflect.Value, error) {
+		return reflect.ValueOf(s), nil
 	},
-	typeOf[bool](): func(s string) (interface{}, error) {
-		return strconv.ParseBool(s)
+	typeOf[bool](): func(s string) (reflect.Value, error) {
+		v, err := strconv.ParseBool(s)
+		return reflect.ValueOf(v), err
 	},
-	typeOf[int](): func(s string) (interface{}, error) {
-		return strconv.Atoi(s)
+	typeOf[int](): func(s string) (reflect.Value, error) {
+		v, err := strconv.Atoi(s)
+		return reflect.ValueOf(v), err
 	},
-	typeOf[Filter](): func(s string) (interface{}, error) {
+	typeOf[Filter](): func(s string) (reflect.Value, error) {
 		split := strings.SplitN(s, ",", 2)
-		return Filter{X: strings.TrimSpace(split[0]), Y: strings.TrimSpace(split[1])}, nil
+		return reflect.ValueOf(Filter{X: strings.TrimSpace(split[0]), Y: strings.TrimSpace(split[1])}), nil
 	},
-	typeOf[Angle](): func(s string) (interface{}, error) {
+	typeOf[Angle](): func(s string) (reflect.Value, error) {
 		value, err := strconv.ParseBool(s)
 		if err == nil {
 			if value {
-				return Angle(90), nil
+				return reflect.ValueOf(Angle(90)), nil
 			} else {
-				return Angle(0), nil
+				return reflect.ValueOf(Angle(0)), nil
 			}
 		}
 		floatValue, err := strconv.ParseFloat(s, 64)
 		if err != nil {
-			return nil, err
+			return reflect.ValueOf(nil), err
 		}
-		return Angle(floatValue), nil
+		return reflect.ValueOf(Angle(floatValue)), nil
 	},
-	typeOf[image.Point](): func(s string) (interface{}, error) {
+	typeOf[image.Point](): func(s string) (reflect.Value, error) {
 		components, err := parseInts(s, 2)
 		if err != nil {
-			return nil, err
+			return reflect.ValueOf(nil), err
 		}
-		return image.Pt(components[0], components[1]), nil
+		return reflect.ValueOf(image.Pt(components[0], components[1])), nil
 	},
-	typeOf[Bounds](): func(s string) (interface{}, error) {
+	typeOf[Bounds](): func(s string) (reflect.Value, error) {
 		components, err := parseInts(s, 4)
 		if err != nil {
-			return nil, err
+			return reflect.ValueOf(nil), err
 		}
-		return Bounds{
+		return reflect.ValueOf(Bounds{
 			Position: image.Pt(components[0], components[1]),
 			Size:     image.Pt(components[2], components[3]),
-		}, nil
+		}), nil
 	},
-	typeOf[Offsets](): func(s string) (interface{}, error) {
+	typeOf[Offsets](): func(s string) (reflect.Value, error) {
 		components, err := parseInts(s, 4)
 		if err != nil {
-			return nil, err
+			return reflect.ValueOf(nil), err
 		}
-		return Offsets{
+		return reflect.ValueOf(Offsets{
 			Offset:       image.Pt(components[0], components[1]),
 			OriginalSize: image.Pt(components[2], components[3]),
-		}, nil
+		}), nil
 	},
 }
 
@@ -134,14 +136,12 @@ func DecodeAtlas(reader io.Reader) ([]Atlas, error) {
 			continue
 		}
 
-		if !processedHeader {
-			if err := parseLine(text, atlasType, atlasValue); err != nil {
-				return nil, err
-			}
-		} else {
+		if processedHeader {
 			if err := parseLine(text, spriteType, currentSpriteValue); err != nil {
 				return nil, err
 			}
+		} else if err := parseLine(text, atlasType, atlasValue); err != nil {
+			return nil, err
 		}
 	}
 
@@ -175,18 +175,17 @@ func parseLine(text string, t reflect.Type, v reflect.Value) error {
 			return err
 		}
 
-		parsedValue := reflect.ValueOf(parsed)
-		v.Field(i).Set(parsedValue)
+		v.Field(i).Set(parsed)
 	}
 	return nil
 }
 
-func parseValue(value string, fieldType reflect.Type) (interface{}, error) {
+func parseValue(value string, fieldType reflect.Type) (reflect.Value, error) {
 	parser, ok := parsers[fieldType]
 	if ok {
 		return parser(value)
 	}
-	return nil, fmt.Errorf("could not parse type: %s", fieldType.Name())
+	return reflect.ValueOf(nil), fmt.Errorf("could not parse type: %s", fieldType.Name())
 }
 
 func parseInts(data string, count int) ([]int, error) {

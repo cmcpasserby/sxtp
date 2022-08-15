@@ -27,6 +27,7 @@ var (
 	supportedFormats = [...]FileFormat{FormatPNG, FormatJPG}
 )
 
+// PackMasks packs a set of secondary textures using the atlas layouts passed in
 func PackMasks(atlasPages []Atlas, format FileFormat, masksPath, outputPath, suffix string, hasAlpha bool, l *log.Logger) error {
 	maskImages, err := getImageNames(masksPath)
 	if err != nil {
