@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/cmcpasserby/scli"
 	"github.com/cmcpasserby/sxtp"
-	"github.com/peterbourgon/ff/v3/ffcli"
 	"log"
 	"os"
 )
@@ -23,12 +23,11 @@ func main() {
 		includeAlphaFlag = rootFlagSet.Bool("a", false, "should alpha channel be included in packed secondary texture")
 	)
 
-	cmd := ffcli.Command{
-		Name:       "sxtp",
-		ShortUsage: "sxtp [flags] <atlasPath masksPath> [outPath]",
-		ShortHelp:  "Tool used for packing secondary textures in spine atlas format",
-		LongHelp:   "Tool used for packing secondary textures in spine atlas format", // TODO long help
-		FlagSet:    rootFlagSet,
+	cmd := &scli.Command{
+		Usage:     "sxtp [flags] <atlasPath masksPath> [outPath]",
+		ShortHelp: "Tool used for packing secondary textures in spine atlas format",
+		LongHelp:  "Tool used for packing secondary textures in spine atlas format", // TODO long help
+		FlagSet:   rootFlagSet,
 		Exec: func(ctx context.Context, args []string) error {
 			if *versionFlag {
 				fmt.Printf("sxtp version %s\n", version)
