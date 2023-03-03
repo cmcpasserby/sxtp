@@ -24,10 +24,11 @@ func main() {
 	)
 
 	cmd := &scli.Command{
-		Usage:     "sxtp [flags] <atlasPath masksPath> [outPath]",
-		ShortHelp: "Tool used for packing secondary textures in spine atlas format",
-		LongHelp:  "Tool used for packing secondary textures in spine atlas format", // TODO long help
-		FlagSet:   rootFlagSet,
+		Usage:         "sxtp [flags] <atlasPath masksPath> [outPath]",
+		ShortHelp:     "Tool used for packing secondary textures in spine atlas format",
+		LongHelp:      "Tool used for packing secondary textures in spine atlas format", // TODO long help
+		FlagSet:       rootFlagSet,
+		ArgsValidator: scli.RangeArgs(2, 3),
 		Exec: func(ctx context.Context, args []string) error {
 			if *versionFlag {
 				fmt.Printf("sxtp version %s\n", version)
@@ -42,14 +43,12 @@ func main() {
 			switch len(args) {
 			case 3:
 				atlasPath, maskPath, outPath = args[0], args[1], args[2]
-
 			case 2:
 				atlasPath, maskPath = args[0], args[1]
 				outPath, err = os.Getwd()
 				if err != nil {
 					return err
 				}
-
 			default:
 				return fmt.Errorf("expected 2 to 3 args got %d", len(args))
 			}
