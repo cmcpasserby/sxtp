@@ -10,6 +10,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -132,18 +133,31 @@ func stripAlpha(img *image.NRGBA) {
 
 func getImageNames(path string) (map[string]string, error) {
 	images := make([]string, 0)
-	for _, ext := range supportedFormats {
-		globbed, err := filepath.Glob(fmt.Sprintf("%s/*.%s", path, ext))
-		if err != nil {
-			return nil, err
+
+	err := filepath.Walk(path, func(p string, info fs.FileInfo, err error) error {
+		ext := filepath.Ext(p)
+
+		for _, format := range supportedFormats {
+			if fmt.Sprintf(".%s", format) == ext {
+				images = append(images, p)
+				break
+			}
 		}
-		images = append(images, globbed...)
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	mapping := make(map[string]string, len(images))
 
 	for _, img := range images {
-		name := strings.TrimSuffix(filepath.Base(img), filepath.Ext(img))
+		name, err := filepath.Rel(path, img)
+		if err != nil {
+			return nil, err
+		}
+		name = strings.TrimSuffix(name, filepath.Ext(name))
 		mapping[name] = img
 	}
 
