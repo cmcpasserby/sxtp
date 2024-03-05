@@ -11,8 +11,7 @@ import (
 )
 
 func typeOf[T any]() reflect.Type {
-	var v T
-	return reflect.TypeOf(v)
+	return reflect.TypeFor[T]()
 }
 
 var parsers = map[reflect.Type]func(string) (reflect.Value, error){
