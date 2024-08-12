@@ -88,7 +88,6 @@ func DecodeAtlas(reader io.Reader) ([]Atlas, error) {
 	atlasType := reflect.TypeOf(currentAtlas).Elem()
 	atlasValue := reflect.ValueOf(currentAtlas).Elem()
 
-	sprites := make([]Sprite, 0)
 	currentSprite := new(Sprite)
 
 	spriteType := reflect.TypeOf(*currentSprite)
@@ -104,6 +103,7 @@ func DecodeAtlas(reader io.Reader) ([]Atlas, error) {
 			}
 
 			currentAtlas = new(Atlas)
+
 			if text != "" {
 				currentAtlas.Name = text
 			}
@@ -124,7 +124,7 @@ func DecodeAtlas(reader io.Reader) ([]Atlas, error) {
 		if !strings.Contains(text, ":") {
 			if openSpriteBlock {
 				setSpriteDefaults(currentSprite)
-				sprites = append(sprites, *currentSprite)
+				currentAtlas.Sprites = append(currentAtlas.Sprites, *currentSprite)
 				currentSprite = new(Sprite)
 				currentSpriteValue = reflect.ValueOf(currentSprite).Elem()
 			}
@@ -150,8 +150,7 @@ func DecodeAtlas(reader io.Reader) ([]Atlas, error) {
 
 	if currentAtlas != nil {
 		setSpriteDefaults(currentSprite)
-		sprites = append(sprites, *currentSprite)
-		currentAtlas.Sprites = sprites
+		currentAtlas.Sprites = append(currentAtlas.Sprites, *currentSprite)
 		pages = append(pages, *currentAtlas)
 	}
 

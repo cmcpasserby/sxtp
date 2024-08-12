@@ -37,12 +37,12 @@ func PackMasks(atlasPages []Atlas, format FileFormat, masksPath, outputPath, suf
 
 	var wg errgroup.Group
 
-	for i, atlas := range atlasPages {
-		i, atlas := i, &atlas
+	for _, atlas := range atlasPages {
+		atlas := &atlas
 
 		wg.Go(func() error {
 			noExtName := strings.TrimSuffix(atlas.Name, filepath.Ext(atlas.Name))
-			maskFileName := fmt.Sprintf("%s_%s_%02d.%s", noExtName, suffix, i, format)
+			maskFileName := fmt.Sprintf("%s_%s.%s", noExtName, suffix, format)
 			outFileName := filepath.Join(outputPath, maskFileName)
 			return packPage(atlas, maskImages, format, outFileName, hasAlpha, l)
 		})
