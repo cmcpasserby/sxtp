@@ -2,16 +2,16 @@ package sxtp
 
 import (
 	"fmt"
-	"github.com/disintegration/imaging"
+	"golang.org/x/image/draw"
+	"golang.org/x/image/math/f64"
 	"golang.org/x/sync/errgroup"
 	"image"
-	"image/color"
-	"image/draw"
 	"image/jpeg"
 	"image/png"
 	"io"
 	"io/fs"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -67,7 +67,15 @@ func packPage(atlas *Atlas, maskImages map[string]string, format FileFormat, out
 			return err
 		}
 
-		maskImage = imaging.Rotate(maskImage, sprite.Rotate.Degrees(), color.NRGBA{})
+		// TODO combine this with the crop and offset and try to do it with mostly 1 transform also apply scale
+		if sprite.Rotate != 0 {
+			size := maskImage.Bounds().Size()
+			rotatedMask := image.NewNRGBA(image.Rect(0, 0, size.Y, size.X))
+
+			draw.CatmullRom.Transform(rotatedMask, makeRotation(-sprite.Rotate.Radians(), rotatedMask.Bounds().Size()), maskImage, maskImage.Bounds(), draw.Over, nil)
+			maskImage = rotatedMask
+		}
+
 		maskImage = cropAndOffset(maskImage, sprite)
 
 		spriteRect := image.Rectangle{Min: sprite.Bounds.Position, Max: sprite.Bounds.Position.Add(maskImage.Bounds().Size())}
@@ -199,5 +207,14 @@ func saveImage(path string, img image.Image, format FileFormat, l *log.Logger) e
 func closeWithLoggedError(c io.Closer, l *log.Logger) {
 	if err := c.Close(); err != nil {
 		l.Println(err)
+	}
+}
+
+func makeRotation(r float64, size image.Point) f64.Aff3 {
+	cosD, sinD := math.Cos(r), math.Sin(r)
+
+	return f64.Aff3{
+		cosD, -sinD, 0,
+		sinD, cosD, float64(size.Y),
 	}
 }

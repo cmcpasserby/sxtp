@@ -51,6 +51,7 @@ type Atlas struct {
 	Size    image.Point `atlas:"size"`
 	Format  string      `atlas:"format"`
 	Filter  Filter      `atlas:"filter"`
+	Scale   []float64   `atlas:"scale"`
 	Repeat  string      `atlas:"repeat"`
 	Pma     bool        `atlas:"pma"`
 	Sprites []Sprite    `atlas:"sprites"`
