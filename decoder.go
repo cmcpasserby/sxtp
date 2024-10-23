@@ -98,6 +98,12 @@ func DecodeAtlas(reader io.Reader) ([]Atlas, error) {
 
 		// Open Page
 		if text == "" || currentAtlas == nil {
+			// ensure final sprite of previous is processed when opening a new page
+			if openSpriteBlock && currentAtlas != nil {
+				setSpriteDefaults(currentSprite)
+				currentAtlas.Sprites = append(currentAtlas.Sprites, *currentSprite)
+			}
+
 			if currentAtlas != nil {
 				pages = append(pages, *currentAtlas)
 			}
