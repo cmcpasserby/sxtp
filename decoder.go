@@ -10,27 +10,23 @@ import (
 	"strings"
 )
 
-func typeOf[T any]() reflect.Type {
-	return reflect.TypeFor[T]()
-}
-
 var parsers = map[reflect.Type]func(string) (reflect.Value, error){
-	typeOf[string](): func(s string) (reflect.Value, error) {
+	reflect.TypeFor[string](): func(s string) (reflect.Value, error) {
 		return reflect.ValueOf(s), nil
 	},
-	typeOf[bool](): func(s string) (reflect.Value, error) {
+	reflect.TypeFor[bool](): func(s string) (reflect.Value, error) {
 		v, err := strconv.ParseBool(s)
 		return reflect.ValueOf(v), err
 	},
-	typeOf[int](): func(s string) (reflect.Value, error) {
+	reflect.TypeFor[int](): func(s string) (reflect.Value, error) {
 		v, err := strconv.Atoi(s)
 		return reflect.ValueOf(v), err
 	},
-	typeOf[Filter](): func(s string) (reflect.Value, error) {
+	reflect.TypeFor[Filter](): func(s string) (reflect.Value, error) {
 		split := strings.SplitN(s, ",", 2)
 		return reflect.ValueOf(Filter{X: strings.TrimSpace(split[0]), Y: strings.TrimSpace(split[1])}), nil
 	},
-	typeOf[Angle](): func(s string) (reflect.Value, error) {
+	reflect.TypeFor[Angle](): func(s string) (reflect.Value, error) {
 		value, err := strconv.ParseBool(s)
 		if err == nil {
 			if value {
@@ -45,14 +41,14 @@ var parsers = map[reflect.Type]func(string) (reflect.Value, error){
 		}
 		return reflect.ValueOf(Angle(floatValue)), nil
 	},
-	typeOf[image.Point](): func(s string) (reflect.Value, error) {
+	reflect.TypeFor[image.Point](): func(s string) (reflect.Value, error) {
 		components, err := parseInts(s, 2)
 		if err != nil {
 			return reflect.ValueOf(nil), err
 		}
 		return reflect.ValueOf(image.Pt(components[0], components[1])), nil
 	},
-	typeOf[Bounds](): func(s string) (reflect.Value, error) {
+	reflect.TypeFor[Bounds](): func(s string) (reflect.Value, error) {
 		components, err := parseInts(s, 4)
 		if err != nil {
 			return reflect.ValueOf(nil), err
@@ -62,7 +58,7 @@ var parsers = map[reflect.Type]func(string) (reflect.Value, error){
 			Size:     image.Pt(components[2], components[3]),
 		}), nil
 	},
-	typeOf[Offsets](): func(s string) (reflect.Value, error) {
+	reflect.TypeFor[Offsets](): func(s string) (reflect.Value, error) {
 		components, err := parseInts(s, 4)
 		if err != nil {
 			return reflect.ValueOf(nil), err
