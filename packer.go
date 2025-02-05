@@ -58,7 +58,6 @@ func packPage(atlas *Atlas, maskImages map[string]string, format FileFormat, out
 	for _, sprite := range atlas.Sprites {
 		maskImagePath, ok := maskImages[sprite.Name]
 		if !ok {
-			l.Printf("Skipped %s since packed images path does not contain it", sprite.Name)
 			continue
 		}
 
