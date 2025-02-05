@@ -166,6 +166,7 @@ func getImageNames(path string) (map[string]string, error) {
 			return nil, err
 		}
 		name = strings.TrimSuffix(name, filepath.Ext(name))
+		name = strings.ReplaceAll(name, "\\", "/")
 		mapping[name] = img
 	}
 
